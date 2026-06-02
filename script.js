@@ -171,9 +171,7 @@ quickForms.forEach((form) => {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const name = form.querySelector('input[name="name"]').value.trim();
     const phone = quickPhone.value.trim();
-    const service = form.querySelector('[name="service"]').value;
 
     if (!isValidPhone(phone)) {
       quickPhone.classList.add("error");
@@ -182,18 +180,16 @@ quickForms.forEach((form) => {
     }
 
     const whatsappMessage =
-      "Здравствуйте! Заявка с сайта Salamat Mebel:\n\n" +
-      `Имя: ${name || "не указано"}\n` +
+      "Здравствуйте! Хочу рассчитать мебель в Salamat Mebel.\n\n" +
       `Телефон: ${phone}\n` +
-      `Тип мебели: ${service || "не указан"}\n` +
-      "Комментарий: нужен предварительный расчет и обратный звонок.";
+      "Расскажите подробнее о проекте в ответном сообщении.";
 
     quickSubmit.disabled = true;
     quickSubmit.textContent = "Открываем WhatsApp...";
     openWhatsApp(whatsappMessage);
     form.reset();
     quickSubmit.disabled = false;
-    quickSubmit.textContent = "Получить расчет";
+    quickSubmit.textContent = "Рассчитать";
   });
 });
 

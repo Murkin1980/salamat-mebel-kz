@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://salamat-mebel.kz/sitemap.xml
