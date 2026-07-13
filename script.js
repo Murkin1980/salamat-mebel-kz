@@ -146,6 +146,16 @@ const messageInput = document.getElementById("message");
 const leadSummary = document.getElementById("leadSummary");
 const briefProgress = document.querySelectorAll(".brief-progress span");
 const quickForms = document.querySelectorAll("[data-quick-form]");
+const floatingLeadToggle = document.getElementById("floatingLeadToggle");
+const mobileLeadToggle = document.getElementById("mobileLeadToggle");
+const floatingLeadPanel = document.getElementById("floatingLeadPanel");
+const floatingLeadClose = document.getElementById("floatingLeadClose");
+const floatingLeadForm = document.getElementById("floatingLeadForm");
+const floatingLeadName = document.getElementById("floatingLeadName");
+const floatingLeadPhone = document.getElementById("floatingLeadPhone");
+const floatingLeadSubmit = document.getElementById("floatingLeadSubmit");
+const floatingLeadStatus = document.getElementById("floatingLeadStatus");
+const leadOpenButtons = document.querySelectorAll("[data-open-lead]");
 
 const styleCards = document.querySelectorAll(".style-card");
 const stylePreviewImage = document.getElementById("stylePreviewImage");
@@ -244,6 +254,82 @@ quickForms.forEach((form) => {
       quickSubmit.textContent = "Рассчитать";
     }, 1800);
   });
+});
+
+function openFloatingLead() {
+  if (!floatingLeadPanel) return;
+  if (typeof closeChat === "function") closeChat();
+  floatingLeadPanel.classList.add("open");
+  floatingLeadPanel.setAttribute("aria-hidden", "false");
+  window.setTimeout(() => floatingLeadPhone?.focus(), 80);
+}
+
+function closeFloatingLead() {
+  if (!floatingLeadPanel) return;
+  floatingLeadPanel.classList.remove("open");
+  floatingLeadPanel.setAttribute("aria-hidden", "true");
+}
+
+[floatingLeadToggle, mobileLeadToggle, ...leadOpenButtons].forEach((button) => {
+  button?.addEventListener("click", openFloatingLead);
+});
+
+floatingLeadClose?.addEventListener("click", closeFloatingLead);
+
+floatingLeadPhone?.addEventListener("input", () => {
+  floatingLeadPhone.value = formatKzPhone(floatingLeadPhone.value);
+  floatingLeadPhone.classList.remove("error");
+  if (floatingLeadStatus) floatingLeadStatus.textContent = "";
+});
+
+floatingLeadForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const name = floatingLeadName.value.trim() || "Клиент Salamat Mebel";
+  const phone = floatingLeadPhone.value.trim();
+
+  if (!isValidPhone(phone)) {
+    floatingLeadPhone.classList.add("error");
+    floatingLeadPhone.focus();
+    if (floatingLeadStatus) floatingLeadStatus.textContent = "Проверьте номер телефона.";
+    return;
+  }
+
+  floatingLeadSubmit.disabled = true;
+  floatingLeadSubmit.textContent = "Сохраняем заявку...";
+  if (floatingLeadStatus) floatingLeadStatus.textContent = "";
+
+  const description = "Быстрая заявка из плавающей формы Salamat Mebel.";
+  const intakeResult = await submitLeadToIntake({
+    name,
+    phone,
+    furnitureType: "Быстрый WhatsApp-лид",
+    description
+  });
+
+  if (!intakeResult.ok) {
+    floatingLeadSubmit.disabled = false;
+    floatingLeadSubmit.textContent = "Сохранить и открыть WhatsApp";
+    if (floatingLeadStatus) {
+      floatingLeadStatus.textContent = "Заявка не сохранилась. Проверьте интернет и отправьте еще раз.";
+    }
+    return;
+  }
+
+  const whatsappMessage = compactLines([
+    "Здравствуйте! Хочу рассчитать мебель в Salamat Mebel.",
+    "",
+    `Имя: ${name}`,
+    `Телефон: ${phone}`,
+    intakeResult.orderId ? `Заявка в системе: #${intakeResult.orderId}` : null,
+    "Пишу после отправки заявки с сайта."
+  ]);
+
+  openWhatsApp(whatsappMessage);
+  floatingLeadForm.reset();
+  closeFloatingLead();
+  floatingLeadSubmit.disabled = false;
+  floatingLeadSubmit.textContent = "Сохранить и открыть WhatsApp";
 });
 
 [serviceSelect, styleSelect, dimensionsInput, stageSelect, messageInput].forEach((field) => {
