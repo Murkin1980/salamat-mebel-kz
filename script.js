@@ -206,6 +206,15 @@ phoneInput.addEventListener("input", () => {
 quickForms.forEach((form) => {
   const quickPhone = form.querySelector('input[name="phone"]');
   const quickSubmit = form.querySelector('button[type="submit"]');
+  const setQuickSubmit = (state) => {
+    const states = {
+      idle: '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span>Сохранить заявку</span><strong>Открыть WhatsApp</strong>',
+      saving: '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><span>Сохраняем</span><strong>Заявку в базу</strong>',
+      error: '<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>Не сохранилось</span><strong>Попробовать еще раз</strong>',
+      success: '<i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>Заявка сохранена</span><strong>WhatsApp открыт</strong>'
+    };
+    quickSubmit.innerHTML = states[state] || states.idle;
+  };
 
   quickPhone.addEventListener("input", () => {
     quickPhone.value = formatKzPhone(quickPhone.value);
@@ -224,7 +233,7 @@ quickForms.forEach((form) => {
     }
 
     quickSubmit.disabled = true;
-    quickSubmit.textContent = "Сохраняем заявку...";
+    setQuickSubmit("saving");
     const intakeResult = await submitLeadToIntake({
       name: "Клиент Salamat Mebel",
       phone,
@@ -240,18 +249,18 @@ quickForms.forEach((form) => {
 
     quickSubmit.disabled = false;
     if (!intakeResult.ok) {
-      quickSubmit.textContent = "Не сохранилось";
+      setQuickSubmit("error");
       window.setTimeout(() => {
-        quickSubmit.textContent = "Рассчитать";
+        setQuickSubmit("idle");
       }, 2200);
       return;
     }
 
     openWhatsApp(whatsappMessage);
     form.reset();
-    quickSubmit.textContent = "Заявка сохранена";
+    setQuickSubmit("success");
     window.setTimeout(() => {
-      quickSubmit.textContent = "Рассчитать";
+      setQuickSubmit("idle");
     }, 1800);
   });
 });

@@ -19,7 +19,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Prata&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260526-1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="styles.css?v=20260713-5">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -75,9 +76,9 @@
           <p class="hero-lead">Проектируем, изготавливаем и монтируем мебель под ваши размеры</p>
           <div class="hero-actions">
             <div class="cta-stack">
-              <a class="glass-btn" href="#contact">Рассчитать в WhatsApp за 10 минут</a>
+              <a class="glass-btn" href="#contact"><i class="fa-solid fa-calculator" aria-hidden="true"></i>Рассчитать в WhatsApp за 10 минут</a>
             </div>
-            <a class="button ghost" href="#quick-request">Написать в WhatsApp</a>
+            <a class="button ghost" href="#quick-request"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>Написать в WhatsApp</a>
           </div>
         </div>
         <dl class="hero-facts reveal reveal-delay-2" aria-label="Преимущества Salamat Mebel">
@@ -118,7 +119,11 @@
           </div>
           <form class="quick-band-form" data-quick-form>
             <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
-            <button class="glass-btn" type="submit">Рассчитать</button>
+            <button class="quick-submit" type="submit">
+              <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+              <span>Сохранить заявку</span>
+              <strong>Открыть WhatsApp</strong>
+            </button>
           </form>
         </div>
       </section>
@@ -237,7 +242,7 @@
                 <li>встроенная техника и высокие шкафы</li>
                 <li>эргономика под реальную готовку</li>
               </ul>
-              <a class="glass-btn" href="#contact">Рассчитать кухню</a>
+              <a class="glass-btn" href="#contact"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Рассчитать кухню</a>
             </div>
             <img src="https://static.tildacdn.pro/tild3962-6166-4432-b461-663535636530/modern-kitchen-in-hi.jpg" alt="Кухня на заказ в Алматы" width="600" height="490" loading="lazy" decoding="async">
           </article>
@@ -251,7 +256,7 @@
                 <li>полки, штанги, ящики, антресоли</li>
                 <li>аккуратная интеграция в ниши</li>
               </ul>
-              <a class="glass-btn" href="#contact">Рассчитать шкаф</a>
+              <a class="glass-btn" href="#contact"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Рассчитать шкаф</a>
             </div>
             <img src="https://static.tildacdn.pro/tild3231-3635-4664-b338-353865343437/sliding-closet-with-.jpg" alt="Шкаф на заказ в Алматы" width="600" height="490" loading="lazy" decoding="async">
           </article>
@@ -419,7 +424,7 @@
             <span>Резюме заявки</span>
             <p id="leadSummary">Выберите тип мебели, стиль и стадию проекта - мы соберем аккуратный текст для WhatsApp.</p>
           </div>
-          <button class="form-submit" id="submitBtn" type="submit">Отправить заявку в WhatsApp</button>
+          <button class="form-submit" id="submitBtn" type="submit"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>Отправить заявку в WhatsApp</button>
           <p class="form-note" id="formSuccess" aria-live="polite">WhatsApp откроется в новой вкладке с готовым текстом заявки.</p>
         </form>
       </section>
@@ -481,7 +486,7 @@
       <form id="floatingLeadForm">
         <input id="floatingLeadName" name="name" type="text" autocomplete="name" placeholder="Имя">
         <input id="floatingLeadPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
-        <button id="floatingLeadSubmit" type="submit">Сохранить и открыть WhatsApp</button>
+        <button id="floatingLeadSubmit" type="submit"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>Сохранить и открыть WhatsApp</button>
         <p id="floatingLeadStatus" aria-live="polite"></p>
       </form>
     </section>
@@ -512,6 +517,6 @@
       <p id="lightboxCaption"></p>
     </div>
 
-    <script src="script.js?v=20260713-3" defer></script>
+    <script src="script.js?v=20260713-5" defer></script>
   </body>
 </html>
