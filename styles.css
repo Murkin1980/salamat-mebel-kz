@@ -1645,13 +1645,13 @@ body.contact-active .chat-toggle {
 }
 
 .floating-lead strong {
-  color: var(--ink);
+  color: var(--charcoal);
   font-size: 18px;
 }
 
 .floating-lead span {
   margin-top: 5px;
-  color: var(--muted);
+  color: rgba(17, 17, 17, 0.68);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -1667,7 +1667,7 @@ body.contact-active .chat-toggle {
   border: 0;
   border-radius: 50%;
   background: rgba(17, 17, 17, 0.08);
-  color: var(--ink);
+  color: var(--charcoal);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
@@ -1686,8 +1686,12 @@ body.contact-active .chat-toggle {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.82);
   padding: 0 13px;
-  color: var(--ink);
+  color: var(--charcoal);
   font: inherit;
+}
+
+.floating-lead input::placeholder {
+  color: rgba(17, 17, 17, 0.46);
 }
 
 .floating-lead input.error {
@@ -1713,7 +1717,7 @@ body.contact-active .chat-toggle {
 .floating-lead p {
   min-height: 18px;
   margin: 0;
-  color: var(--muted);
+  color: rgba(17, 17, 17, 0.68);
   font-size: 12px;
   line-height: 1.4;
 }
