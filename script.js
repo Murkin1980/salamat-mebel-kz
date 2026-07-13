@@ -215,7 +215,7 @@ quickForms.forEach((form) => {
 
     quickSubmit.disabled = true;
     quickSubmit.textContent = "Сохраняем заявку...";
-    const intake = submitLeadToIntake({
+    const intakeResult = await submitLeadToIntake({
       name: "Клиент Salamat Mebel",
       phone,
       furnitureType: "Быстрый расчет",
@@ -228,11 +228,18 @@ quickForms.forEach((form) => {
       "Расскажите подробнее о проекте в ответном сообщении."
     ]);
 
-    openWhatsApp(whatsappMessage);
-    const intakeResult = await intake;
-    form.reset();
     quickSubmit.disabled = false;
-    quickSubmit.textContent = intakeResult.ok ? "Заявка сохранена" : "Рассчитать";
+    if (!intakeResult.ok) {
+      quickSubmit.textContent = "Не сохранилось";
+      window.setTimeout(() => {
+        quickSubmit.textContent = "Рассчитать";
+      }, 2200);
+      return;
+    }
+
+    openWhatsApp(whatsappMessage);
+    form.reset();
+    quickSubmit.textContent = "Заявка сохранена";
     window.setTimeout(() => {
       quickSubmit.textContent = "Рассчитать";
     }, 1800);
@@ -291,7 +298,7 @@ leadForm.addEventListener("submit", async (event) => {
     stage ? `Стадия: ${stage}` : null,
     message ? `Комментарий: ${message}` : null
   ]);
-  const intake = submitLeadToIntake({
+  const intakeResult = await submitLeadToIntake({
     name,
     phone,
     furnitureType: service,
@@ -309,15 +316,19 @@ leadForm.addEventListener("submit", async (event) => {
     `Комментарий: ${message || "нет"}`
   ]);
 
+  if (!intakeResult.ok) {
+    formSuccess.textContent = "Заявка не сохранилась в системе. Проверьте интернет и отправьте еще раз.";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Отправить заявку";
+    return;
+  }
+
   openWhatsApp(whatsappMessage);
-  const intakeResult = await intake;
   leadForm.reset();
   document.querySelectorAll(".option-chips button").forEach((button) => button.classList.remove("active"));
   selectStyle("Теплый премиум");
   updateLeadSummary();
-  formSuccess.textContent = intakeResult.ok
-    ? `Заявка сохранена в системе${intakeResult.orderId ? ` #${intakeResult.orderId}` : ""}. WhatsApp открыт для уточнения деталей.`
-    : "WhatsApp открыт. Заявка не сохранилась в системе, менеджер примет ее вручную.";
+  formSuccess.textContent = `Заявка сохранена в системе${intakeResult.orderId ? ` #${intakeResult.orderId}` : ""}. WhatsApp открыт для уточнения деталей.`;
   submitBtn.disabled = false;
   submitBtn.textContent = "Отправить заявку";
 });
@@ -516,7 +527,7 @@ async function sendChatLead() {
     chatState.stage ? `Стадия: ${chatState.stage}` : null,
     "Заявка с помощника Salamat Mebel."
   ]);
-  const intake = submitLeadToIntake({
+  const intakeResult = await submitLeadToIntake({
     name: "Клиент Salamat Mebel",
     phone,
     furnitureType: chatState.service,
@@ -531,10 +542,17 @@ async function sendChatLead() {
     `Телефон: ${phone}`
   ]);
 
+  if (!intakeResult.ok) {
+    setTimeout(() => {
+      bubble("Заявка не сохранилась в системе. Проверьте интернет и отправьте телефон еще раз.", "bot");
+      showChatPhone();
+    }, 250);
+    return;
+  }
+
   openWhatsApp(message);
-  const intakeResult = await intake;
   setTimeout(() => {
-    bubble(intakeResult.ok ? "Готово. Заявка сохранена, WhatsApp открыт для уточнения." : "WhatsApp открыт. Если система не сохранила заявку, менеджер примет ее вручную.", "bot");
+    bubble("Готово. Заявка сохранена, WhatsApp открыт для уточнения.", "bot");
     setChatButtons(["Новая заявка"], () => startChat());
   }, 250);
 }
