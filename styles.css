@@ -2309,7 +2309,6 @@ body.contact-active .chat-toggle {
     font-size: 14px;
   }
 
-  .float-whatsapp,
   .chat-toggle {
     right: 16px;
     width: 56px;
@@ -2317,13 +2316,7 @@ body.contact-active .chat-toggle {
   }
 
   .float-whatsapp {
-    display: inline-flex;
-    width: auto;
-    min-width: 166px;
-    gap: 10px;
-    padding: 0 18px;
-    border-radius: 999px;
-    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    display: none;
   }
 
   .float-whatsapp span {
@@ -2380,8 +2373,9 @@ body.contact-active .chat-toggle {
     color: #fff;
   }
 
-  body.hero-active .float-whatsapp,
-  body.hero-active .chat-toggle {
+  body.hero-active .chat-toggle,
+  body.contact-active .chat-toggle,
+  body.contact-active .mobile-sticky-cta {
     opacity: 0;
     pointer-events: none;
     transform: translateY(12px);
