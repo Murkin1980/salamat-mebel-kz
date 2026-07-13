@@ -2377,6 +2377,7 @@ body.contact-active .chat-toggle {
   body.contact-active .chat-toggle,
   body.contact-active .mobile-sticky-cta {
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
     transform: translateY(12px);
   }
