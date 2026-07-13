@@ -1,4 +1,5 @@
 const WA_NUMBER = "77059164337";
+const INTAKE_API_URL = "https://furniture-orders-mvp.pages.dev/api/orders";
 
 const header = document.getElementById("siteHeader");
 const menuToggle = document.getElementById("menuToggle");
@@ -99,6 +100,39 @@ function openWhatsApp(message) {
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
 }
 
+function compactLines(lines) {
+  return lines.filter(Boolean).join("\n");
+}
+
+async function submitLeadToIntake({ name, phone, furnitureType, description }) {
+  const payload = {
+    name: name || "Клиент Salamat Mebel",
+    phone,
+    source: "salamat-mebel.kz",
+    city: "Алматы",
+    furnitureType: furnitureType || "",
+    description: description || ""
+  };
+
+  try {
+    const response = await fetch(INTAKE_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Intake API request failed");
+    }
+
+    return { ok: true, orderId: result.orderId };
+  } catch (error) {
+    console.warn("Lead was not saved to intake API", error);
+    return { ok: false };
+  }
+}
+
 const leadForm = document.getElementById("leadForm");
 const phoneInput = document.getElementById("phone");
 const phoneError = document.getElementById("phoneError");
@@ -168,7 +202,7 @@ quickForms.forEach((form) => {
     quickPhone.classList.remove("error");
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const phone = quickPhone.value.trim();
@@ -179,17 +213,29 @@ quickForms.forEach((form) => {
       return;
     }
 
-    const whatsappMessage =
-      "Здравствуйте! Хочу рассчитать мебель в Salamat Mebel.\n\n" +
-      `Телефон: ${phone}\n` +
-      "Расскажите подробнее о проекте в ответном сообщении.";
-
     quickSubmit.disabled = true;
-    quickSubmit.textContent = "Открываем WhatsApp...";
+    quickSubmit.textContent = "Сохраняем заявку...";
+    const intake = submitLeadToIntake({
+      name: "Клиент Salamat Mebel",
+      phone,
+      furnitureType: "Быстрый расчет",
+      description: "Быстрый расчет с главной страницы. Клиент оставил телефон."
+    });
+    const whatsappMessage = compactLines([
+      "Здравствуйте! Хочу рассчитать мебель в Salamat Mebel.",
+      "",
+      `Телефон: ${phone}`,
+      "Расскажите подробнее о проекте в ответном сообщении."
+    ]);
+
     openWhatsApp(whatsappMessage);
+    const intakeResult = await intake;
     form.reset();
     quickSubmit.disabled = false;
-    quickSubmit.textContent = "Рассчитать";
+    quickSubmit.textContent = intakeResult.ok ? "Заявка сохранена" : "Рассчитать";
+    window.setTimeout(() => {
+      quickSubmit.textContent = "Рассчитать";
+    }, 1800);
   });
 });
 
@@ -219,7 +265,7 @@ styleCards.forEach((card) => {
 
 updateLeadSummary();
 
-leadForm.addEventListener("submit", (event) => {
+leadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const name = document.getElementById("name").value.trim();
@@ -237,24 +283,41 @@ leadForm.addEventListener("submit", (event) => {
     return;
   }
 
-  const whatsappMessage =
-    "Здравствуйте! Заявка с сайта Salamat Mebel:\n\n" +
-    `Имя: ${name || "не указано"}\n` +
-    `Телефон: ${phone}\n` +
-    `Тип мебели: ${service || "не указан"}\n` +
-    `Стиль: ${style || "не выбран"}\n` +
-    `Размеры/помещение: ${dimensions || "не указано"}\n` +
-    `Стадия: ${stage || "не указана"}\n` +
-    `Комментарий: ${message || "нет"}`;
-
   submitBtn.disabled = true;
-  submitBtn.textContent = "Открываем WhatsApp...";
+  submitBtn.textContent = "Сохраняем заявку...";
+  const description = compactLines([
+    style ? `Стиль: ${style}` : null,
+    dimensions ? `Размеры/помещение: ${dimensions}` : null,
+    stage ? `Стадия: ${stage}` : null,
+    message ? `Комментарий: ${message}` : null
+  ]);
+  const intake = submitLeadToIntake({
+    name,
+    phone,
+    furnitureType: service,
+    description
+  });
+  const whatsappMessage = compactLines([
+    "Здравствуйте! Заявка с сайта Salamat Mebel:",
+    "",
+    `Имя: ${name || "не указано"}`,
+    `Телефон: ${phone}`,
+    `Тип мебели: ${service || "не указан"}`,
+    `Стиль: ${style || "не выбран"}`,
+    `Размеры/помещение: ${dimensions || "не указано"}`,
+    `Стадия: ${stage || "не указана"}`,
+    `Комментарий: ${message || "нет"}`
+  ]);
+
   openWhatsApp(whatsappMessage);
+  const intakeResult = await intake;
   leadForm.reset();
   document.querySelectorAll(".option-chips button").forEach((button) => button.classList.remove("active"));
   selectStyle("Теплый премиум");
   updateLeadSummary();
-  formSuccess.textContent = "Заявка подготовлена. Если WhatsApp не открылся, нажмите кнопку еще раз.";
+  formSuccess.textContent = intakeResult.ok
+    ? `Заявка сохранена в системе${intakeResult.orderId ? ` #${intakeResult.orderId}` : ""}. WhatsApp открыт для уточнения деталей.`
+    : "WhatsApp открыт. Заявка не сохранилась в системе, менеджер примет ее вручную.";
   submitBtn.disabled = false;
   submitBtn.textContent = "Отправить заявку";
 });
@@ -439,7 +502,7 @@ chatPhone.addEventListener("input", () => {
   chatPhone.style.outline = "";
 });
 
-function sendChatLead() {
+async function sendChatLead() {
   const phone = chatPhone.value.trim();
   if (!isValidPhone(phone)) {
     chatPhone.style.outline = "2px solid var(--error)";
@@ -448,16 +511,30 @@ function sendChatLead() {
 
   bubble(phone, "user");
   chatPhoneRow.classList.remove("show");
-  const message =
-    "Здравствуйте! Заявка с помощника Salamat Mebel:\n\n" +
-    `Тип мебели: ${chatState.service || "не указан"}\n` +
-    `Детали: ${chatState.detail || "не указано"}\n` +
-    `Стадия: ${chatState.stage || "не указана"}\n` +
-    `Телефон: ${phone}`;
+  const description = compactLines([
+    chatState.detail ? `Детали: ${chatState.detail}` : null,
+    chatState.stage ? `Стадия: ${chatState.stage}` : null,
+    "Заявка с помощника Salamat Mebel."
+  ]);
+  const intake = submitLeadToIntake({
+    name: "Клиент Salamat Mebel",
+    phone,
+    furnitureType: chatState.service,
+    description
+  });
+  const message = compactLines([
+    "Здравствуйте! Заявка с помощника Salamat Mebel:",
+    "",
+    `Тип мебели: ${chatState.service || "не указан"}`,
+    `Детали: ${chatState.detail || "не указано"}`,
+    `Стадия: ${chatState.stage || "не указана"}`,
+    `Телефон: ${phone}`
+  ]);
 
   openWhatsApp(message);
+  const intakeResult = await intake;
   setTimeout(() => {
-    bubble("Готово. Открываю WhatsApp с вашей заявкой.", "bot");
+    bubble(intakeResult.ok ? "Готово. Заявка сохранена, WhatsApp открыт для уточнения." : "WhatsApp открыт. Если система не сохранила заявку, менеджер примет ее вручную.", "bot");
     setChatButtons(["Новая заявка"], () => startChat());
   }, 250);
 }
