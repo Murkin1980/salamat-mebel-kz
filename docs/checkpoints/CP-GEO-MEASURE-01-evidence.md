@@ -4,8 +4,10 @@
 **MPE decision:** EXTEND_EXISTING
 **Evidence date:** 2026-11-01 (UTC)
 **Branch / commit audited:** `arena/eb109b17-salamat-mebel-kz` from `main` @ `6e7d2784babbb4948a46befa1121cf5030c81c91`
-**Mode:** read-only audit + documentation. No site code changed, no merge, no deployment, no new service, no paid tool.
+**Mode:** pass 1 read-only audit; **pass 2 (same day, owner follow-up) implemented P1 + P3 only**. No merge, no deployment, no DNS/Cloudflare/Ads/form change, no new service, no paid tool.
 **Next re-measurement:** 2026-11-15 (T+14)
+
+> **Pass 2 summary (owner follow-up, 2026-11-01).** P1 and P3 from §10 are implemented in this branch (see §15), covered by 28 dependency-free tests (§18). The Cloudflare/robots posture was re-examined read-only (§16) and it **changes the earlier recommendation in §10 P2**: search and citation crawlers are *not* blocked — only training crawlers are. What is really affected, and by which control, is separated in §17. Search Console and lead attribution remain **BLOCKED** (§8, §9).
 
 ---
 
@@ -22,6 +24,8 @@
 | Lead / inquiry attribution | **BLOCKED (UNKNOWN)** | No analytics; intake payload carries no page/referrer; leads leave to an external API (§9) |
 | ≤3 minimal improvement proposals | **PASS** | Three proposals, none implemented (§10) |
 | 14-day re-measurement plan | **PASS** | Pre-registered procedure and decision rules (§11) |
+| **Pass 2:** P1 + P3 implemented with tests | **PASS (branch only, not deployed)** | 3 commits, 28/28 tests, negative control verified (§15, §18) |
+| **Pass 2:** Cloudflare / Bot Preference Sync read-only review | **PASS** | Settings not changed; per-bot matrix and indexing-vs-training split in §16–§17 |
 
 **Next concrete action (single):** owner provides read-only Search Console access (or the CSV exports listed in §8.2) and answers the two owner decisions in §12. Everything else in this checkpoint is already done.
 
@@ -203,6 +207,8 @@ Ranked by ratio of GEO effect to risk. All three stay inside EXP-GEO-01 (no new 
 - **Risk / effort:** very low / ~15 min, one file. **Rollback:** revert the block.
 - **How it is verified:** hub present in the homepage DOM with descriptive anchors; no layout regression on mobile; then watch Search Console “Pages” for the knowledge URLs.
 
+> **Pass-2 correction:** the recommendation below was written before the per-crawler analysis in §16. Search and citation crawlers turn out to be **allowed**; read §16 before acting on this item.
+
 ### P2 — Make the served robots/edge policy match the measurement goal (closes D2) — **OWNER DECISION, NOT EXECUTED**
 - **Two separate decisions for the owner:**
  1. *Training vs retrieval:* keep `ai-train=no` if that is the intended legal stance, but decide explicitly whether **answer/retrieval agents** (`GPTBot`, `ClaudeBot`, `anthropic-ai`, `GoogleOther`, …) should stay `Disallow: /`. Blocking them removes the site from the sources those products can cite, which is exactly what this experiment measures.
@@ -295,3 +301,115 @@ Ranked by ratio of GEO effect to risk. All three stay inside EXP-GEO-01 (no new 
 - [x] 14-day re-measurement plan with pre-registered rules
 - [x] No merge, no deploy, no new service, no paid tool, no credential handling
 - [ ] Owner answers §12 → next checkpoint evidence update (2026-11-15)
+
+---
+
+## 15. Pass 2 — implemented fixes (P1 + P3), branch only
+
+Nothing is merged or deployed. All three commits live on the session branch; the owner can revert or cherry-pick them independently.
+
+| Commit | Files | What it does | Closes |
+|---|---|---|---|
+| `9eb7e59` feat(geo): link the knowledge hub | `index.html`, `styles.css` | One `<section id="knowledge">` after FAQ with descriptive anchors to `/knowledge/` + the three answer pages; ~45 lines of CSS reusing existing tokens (`.section`, `.reveal`, `--ink`, `--muted`, `--bronze-light`) | **D1** |
+| `6f2fb77` fix(geo): image metadata | `index.html`, 4 knowledge pages | `og:image`/JSON-LD `image` moved off `murkin1980.github.io`; `og:image:width/height` corrected to the measured asset size (**2943×1353**, was a wrong 1200×630); `og:image` + `og:image:alt` added to the hub and all three answer pages; `Article.image` added to the three `Article` blocks | **D3, D4, D5** |
+| `docs` + `tests` | `tests/geo-static.test.mjs`, this file, `README.md` | Contract tests (§18) and evidence | — |
+
+**Deliberately unchanged**
+
+- `robots.txt` in the repository — the served file is Cloudflare-managed (§16); editing the repo copy would change nothing and would hide the conflict.
+- DNS, Cloudflare settings, Google Ads, `script.js` / lead forms, `sitemap.xml`, canonical hosts, navigation, page content and copy.
+- No new images: the existing self-hosted `assets/hero-upscaled.jpg` is reused. Limitation: one generic photo serves all four pages — a page-specific photo would be better but requires new media, which this checkpoint does not authorize.
+- No address/hours/price/rating added: those still need owner verification (**D6**).
+
+**Deviation from the original plan (honest):** the owner asked for a *separate* PR. This session is pinned to one branch and one open PR (#4), so a second PR cannot be opened from it. The fixes are therefore isolated into their own commits, in their own files, so they can be split into a separate PR or reverted independently without touching the evidence commit.
+
+---
+
+## 16. Cloudflare robots.txt / Bot Preference Sync — read-only review (no settings changed)
+
+### 16.1 What the server actually returns (E6, re-checked 2026-11-01)
+
+`https://salamat-mebel.kz/robots.txt` **and** `https://www.salamat-mebel.kz/robots.txt` return the same body, which consists **only** of Cloudflare's managed block:
+
+- preamble "As a condition of accessing this website…" + the Content Signals definitions,
+- `# BEGIN Cloudflare Managed content` … `# END Cloudflare Managed Content`,
+- `User-agent: *` / `Content-Signal: search=yes,ai-train=no,use=reference` / `Allow: /`,
+- 30+ bot-specific groups, every one `Disallow: /`.
+
+The repository file (`robots.txt:1-3`: `User-agent: *`, `Allow: /`, `Sitemap: …`) **does not appear in the response at all** — in particular the `Sitemap:` directive is not served. Cloudflare's documentation describes the managed block as *prepended* to the origin file, so the absence of the origin content is itself a finding to verify in the dashboard (origin file reachability / zone-level robots handling). Note the served list is much longer than Cloudflare's documented default set (e.g. `Baiduspider`, `PetalBot`, `SemrushBot-SWA`, `WARDBot`, `KimiBot`, `CitibotSiteCrawler`, `Google-CloudVertexBot`, legacy `anthropic-ai` / `Claude-Web`), which points to a broader configured policy than the plain Training=Disallow preset.
+
+### 16.2 How the mechanism works (Cloudflare docs)
+
+- **Bot Preference Sync** (replacement for the older managed-robots.txt) writes your **Search / Agent / Training** policies into `robots.txt`. Cloudflare prepends the managed block only when at least one policy is Block / Block on pages with ads / (Training) Disallow — which is exactly the state observed here.
+- With **Training = Disallow** and sync enabled, Cloudflare states it "adds managed directives **and enables edge blocking for AI training crawlers**. Mixed-use crawlers are excluded from this edge block."
+- Under **RFC 9309 §2.2.1** a crawler obeys the group that names it and only falls back to `*` when no named group exists. Groups do not cascade — so a bot named in the managed block never reads the wildcard group underneath.
+- robots.txt itself is **a preference, not enforcement**; enforcement is a separate product (AI Crawl Control / WAF). Cloudflare also warns that Search Console may report *"Syntax not understood"* for `Content-Signal` and newer directives, with no observed crawl impact.
+
+Source: <https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/> (page updated 2026-10-22).
+
+### 16.3 Per-crawler verdict for the four agents requested by the owner
+
+| Agent | Named in served robots.txt? | Effective rule | Practical meaning |
+|---|---|---|---|
+| **Googlebot** | No | `Allow: /` via `User-agent: *` | **Allowed.** Google Search indexing unaffected. Also a mixed-use crawler, so Cloudflare excludes it from the training edge block. AI Overviews/AI Mode draw on this same index → eligibility unchanged by robots (the property-level Search-Console setting is the lever, §17) |
+| **GPTBot** (OpenAI training) | Yes → `Disallow: /` | blocked | **Blocked by design.** Training opt-out. Has **no** effect on ChatGPT search answers — those use `OAI-SearchBot` |
+| **OAI-SearchBot** (ChatGPT search) | No | `Allow: /` via `*` | **Allowed.** ChatGPT search may index and cite the site |
+| **ClaudeBot** (Anthropic training) | Yes → `Disallow: /` | blocked | **Blocked by design.** Training opt-out. Citation in Claude is driven by `Claude-SearchBot` / `Claude-User`, which are **not** named here → allowed |
+| (context) `Google-Extended` | Yes → `Disallow: /` | blocked | Gemini **training and grounding in Gemini Apps / Vertex** are declined. Google states it does **not** affect Search inclusion, ranking, AI Overviews or AI Mode |
+| (context) `CCBot`, `GoogleOther`, `Bytespider`, `meta-externalagent`, `cohere-ai`, `MistralAI-Training`, `Diffbot`, `omgili`, `KimiBot` … | Yes → `Disallow: /` | blocked | Training / third-party corpora and other engines |
+| (context) `PerplexityBot`, `Bingbot`, `Applebot` | No | allowed via `*` | Not blocked |
+
+**Bottom line:** the current posture is "**citations yes, training no**", which is a defensible and *good* posture for this checkpoint. The two real defects for measurement are not "AI is blocked" but: (a) the served file has **no `Sitemap:` directive** and the repository file is not visible at all, and (b) **`Google-Extended` is blocked**, which costs Gemini-app grounding visibility while buying nothing for Search.
+
+### 16.4 What cannot be verified from outside (and must not be guessed)
+
+- Whether the **edge block** for training crawlers is actually active (that is a WAF decision, invisible to a normal fetch; Cloudflare's own docs say both "preference" and "edge blocking" for this preset).
+- Whether `Search` / `Agent` policies are set to Block as well, whether **AI Crawl Control** adds per-crawler rules, and whether **Bot Fight Mode** or custom WAF rules interfere.
+- Correct read-only verification by the owner (dashboard, no changes): **Security → Settings → filter "Bot traffic" → Configure AI bot policies** (read the three dropdowns) → **AI Crawl Control** crawler list → then re-read `/robots.txt` and compare it with the repository file.
+
+---
+
+## 17. What limits search indexing vs what limits AI training
+
+| Control | Where it lives | Google/Bing indexing | AI Overviews / AI Mode | ChatGPT search citation | Claude citation | AI **training** |
+|---|---|---|---|---|---|---|
+| `robots.txt` `User-agent: *` / `Allow` | repo file | governs crawling (if served) | indirect (same index) | indirect (same index) | indirect | no |
+| `Disallow` for a *specific* named crawler | served robots | only if Googlebot/Bingbot named | same | only if `OAI-SearchBot` / `ChatGPT-User` named | only if `Claude-SearchBot` / `Claude-User` named | yes for that operator's training bot |
+| `Googlebot` blocked | robots | **removed from Search** | removed too (no index) | no | no | no |
+| `Google-Extended` | robots | **no effect** | **no effect** | no | no | Gemini training + Gemini-app/Vertex grounding |
+| Search Console → **Settings → Search generative AI** | GSC (property-wide, default *Include*) | no effect | **Include / Exclude** (1–2 days lag) | no | no | **no effect** (Google says use `Google-Extended` for training) |
+| `nosnippet` / `max-snippet` / `data-nosnippet` | page meta/attr | costs the classic snippet | limits use as direct AI input | — | — | — |
+| `noindex` | page meta | **removes the page from Search** | removed | — | — | no |
+| `GPTBot` blocked | robots | no | no | **no** — different agent | no | OpenAI training |
+| `OAI-SearchBot` blocked | robots | no | no | **removes the site from ChatGPT search answers** | no | no |
+| `ClaudeBot` blocked | robots | no | no | no | **no** — different agent | Anthropic training |
+| `Claude-SearchBot` blocked | robots | no | no | no | **reduces Claude search visibility** | no |
+| `CCBot`, `GoogleOther`, `Bytespider`, `meta-externalagent`, `cohere-ai` … | robots | no | no | no | no | third-party training corpora / other engines |
+| Cloudflare **edge block** (AI Crawl Control / WAF) | Cloudflare | only if misconfigured for mixed-use crawlers | same | if it blocks `OAI-SearchBot` | if it blocks `Claude-SearchBot` | yes for the blocked set |
+| Legacy tokens `anthropic-ai`, `Claude-Web` | served robots | — | — | — | — | **nothing** — deprecated, no current crawler matches them |
+
+**Reading for this site:** indexing is limited by nothing that we can see (Googlebot allowed, `index,follow`, canonical present, sitemap well-formed) — except that **the sitemap is not advertised in the served robots.txt** and the GSC state is unknown. AI *training* is limited by the Cloudflare policy, deliberately. AI *citations* are **not** limited by robots for ChatGPT/Claude/Perplexity, but **Gemini app grounding is declined** via `Google-Extended`.
+
+Sources: Google — <https://support.google.com/webmasters/answer/16908024>, <https://support.google.com/webmasters/answer/16984139>, <https://developers.google.com/search/docs/appearance/ai-features>, Googlebot/Google-Extended documentation (as summarised in §E14); Cloudflare — §16.2; OpenAI crawler documentation (`GPTBot`, `OAI-SearchBot`, `ChatGPT-User` at openai.com/gptbot · /searchbot · /chatgpt-user) and Anthropic crawler documentation (`ClaudeBot`, `Claude-SearchBot`, `Claude-User`). Operator pages could not be fetched directly from this sandbox (egress restricted to package registries), so their statements are taken from the widely repeated documentation summaries; treat the two operator rows as *documented behaviour*, not as independently re-verified text.
+
+---
+
+## 18. Tests (new, dependency-free)
+
+**Command:** `node --test` (Node ≥ 18; no `package.json`, no dependency, no CI service added).
+
+| Aspect | Detail |
+|---|---|
+| File | `tests/geo-static.test.mjs` — 28 assertions-tests over 5 pages |
+| Covers | single `h1`, `lang`, viewport, title/description length, exact canonical per page, valid JSON-LD on every page, `og:image`/`og:image:alt` on the canonical domain, no `murkin1980.github.io` reference, `Article` properties (headline, author, dates, `image`, `mainEntityOfPage`), the referenced image file really exists, homepage descriptive anchors to `/knowledge/` + 3 answer pages, `alt` on every homepage image, sitemap↔file mapping + `lastmod` count, repository `robots.txt` intent |
+| Result | **28/28 pass** (`# pass 28`, `# fail 0`) |
+| Negative control | Reverting only two of the fixes (`og:image` host + one homepage anchor) produced exactly 3 failures — the suite fails on real regressions, it is not tautological |
+| Not covered (deliberately) | Visual layout, live HTTP status, crawler behaviour, Cloudflare state, Search Console data — none of these are observable in a static test and pretending otherwise would be false evidence |
+
+---
+
+## 19. Updated next action
+
+1. Owner review of PR #4 (evidence + two fix commits + tests); merge/deploy is the owner's call — **not performed here**.
+2. **P2 restated after §16:** ask Cloudflare (read-only first) whether the zone is on Bot Preference Sync with Training = Disallow, and decide two things: (a) get the `Sitemap:` line served again (or submit the sitemap in GSC instead), (b) decide whether `Google-Extended` should stay blocked — it is the only lever here that costs Gemini-app visibility and nothing in Google Search.
+3. Unchanged from §12: Search Console access (§8.2) remains the single biggest blocker; T+14 re-check on **2026-11-15** cannot produce exposure numbers without it.
