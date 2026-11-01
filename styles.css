@@ -2395,3 +2395,56 @@ body.contact-active .chat-toggle {
     border-radius: 16px 16px 0 0;
   }
 }
+
+/* Knowledge hub links on the homepage (CP-GEO-MEASURE-01) */
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  max-width: 990px;
+  margin-left: auto;
+}
+
+.knowledge-card {
+  display: block;
+  padding: 22px 24px;
+  border-radius: 18px;
+  border: 1px solid var(--line-neutral);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--transition), border-color var(--transition);
+}
+
+.knowledge-card:hover,
+.knowledge-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--line);
+}
+
+.knowledge-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 17px;
+}
+
+.knowledge-card span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.knowledge-hub-link {
+  display: block;
+  width: fit-content;
+  max-width: 990px;
+  margin: 24px 0 0 auto;
+  color: var(--bronze-light);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.knowledge-hub-link:hover,
+.knowledge-hub-link:focus-visible {
+  text-decoration: underline;
+}
