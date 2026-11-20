@@ -59,3 +59,8 @@ At least one of: repeated AI citations, measurable organic traffic to answer pag
 
 ## Score
 Clear outcome 2/2; few services 2/2; few dependencies 2/2; one deployment 2/2; easy local start 2/2; rollback 2/2; manual fallback 2/2; no speculative scope 2/2; understandable by one developer 2/2; end-to-end testability 2/2. Total: 20/20.
+
+
+## AI visibility · 2026-11-20
+
+Salamat Mebel — заказчик кухни или шкафа в Алматы. Статический index.html, knowledge/ и публичные материалы о замере, глубине шкафа, МДФ/ЛДСП. Canonical https://salamat-mebel.kz/. Единица ценности — проверяемая предварительная смета и обращение с заполненными размерами. Бюджет изменения: только Markdown, ноль новых runtime-компонентов и провайдеров. Проверить исходный HTML и существующие средства до рассмотрения edge или MCP. Отказ от пилота допустим при достаточном baseline.
